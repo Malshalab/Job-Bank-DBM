@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Company Data</title>
+</head>
+<style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    h1, h2 {
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+
+    form, table {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="submit"],
+    button {
+      margin-bottom: 10px;
+      padding: 5px;
+      width: 200px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+
+    #companyData tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+
+    #getDataButton {
+      padding: 5px 10px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+
+    #getDataButton:hover {
+      background-color: #0056b3;
+    }
+
+    .error {
+      color: red;
+    }
+  </style>
+<body>
+
+    <h2>Create Table</h2>
+  <form id="createTableForm">
+    <label for="tableName">Table Name:</label>
+    <input type="text" id="tableName" name="tableName" required><br>
+  
+    <label for="columns">Columns (comma-separated):</label>
+    <input type="text" id="columns" name="columns" required><br>
+  
+    <input type="submit" value="Create Table">
+  </form>
+
+  <h1>Company Data</h1>
+  <button id="getDataButton">Get Company Data</button>
+  <table id="companyTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>CEO</th>
+        <th>Founded</th>
+        <th>Employees</th>
+        <th>Industry</th>
+      </tr>
+    </thead>
+    <tbody id="companyData">
+    </tbody>
+  </table>
+  <form id="companyForm">
+    CompanyID: <input type="number" id="companyID" required><br>
+    CEO Name: <input type="text" id="ceoName" required><br>
+    Date Founded: <input type="date" id="dateFounded" required><br>
+    Number of Employees: <input type="number" id="numEmployees" required><br>
+    Industry: <input type="text" id="industry" required><br>
+    <input type="submit" value="Submit">
+  </form>
+
+  <h2>Drop Table</h2>
+  <form id="dropTableForm">
+    <label for="tableName">Table Name:</label>
+    <input type="text" id="tableName" name="tableName" required><br>
+
+    <input type="submit" value="Drop Table">
+  </form>
+
+  <script>
+     
+     document.getElementById('createTableForm').addEventListener('submit', function(event) {
+  event.preventDefault();
+
+  const tableName = document.getElementById('tableName').value;
+  const columns = document.getElementById('columns').value.split(',').map(column => column.trim());
+
+  fetch('/createTable', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ tableName, columns })
+  })
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error('Failed to create table: ' + response.statusText);
+      }
+    })
+    .then(result => {
+      if (result.success) {
+        console.log('Table created successfully!');
+      } else {
+        console.log('Table creation failed.');
+      }
+    })
+    .catch(error => {
+      console.error('Error creating table:', error);
+    });
+});
+
+    async function dropTable(tableData) {
+      try {
+        const response = await fetch('http://localhost:3000/dropTable', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(tableData)
+        });
+
+        if (response.ok) {
+          alert('Table dropped successfully!');
+        } else {
+          throw new Error('Table drop failed.');
+        }
+      } catch (error) {
+        console.error(error);
+        alert('Error dropping table.');
+      }
+    }
+
+    document.getElementById('dropTableForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const tableData = {
+        tableName: formData.get('tableName')
+      };
+
+      await dropTable(tableData);
+    });
+
+  // JavaScript to handle form submission
+  document.getElementById('companyForm').addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  // Extract input values
+  const companyId = document.getElementById('companyID').value;
+  const ceoName = document.getElementById('ceoName').value;
+  const dateFounded = document.getElementById('dateFounded').value;
+  const numEmployees = document.getElementById('numEmployees').value;
+  const industry = document.getElementById('industry').value;
+
+  // Construct companyData object
+  const companyData = {
+    CompanyID: parseInt(companyId, 10),
+    CEOName: ceoName,
+    DateFounded: dateFounded,
+    NumEmployees: parseInt(numEmployees, 10),
+    Industry: industry
+  };
+
+  try {
+    const response = await fetch('http://localhost:3000/companies', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(companyData)
+    });
+
+    if (response.ok) {
+      alert('Company inserted successfully!');
+      // Optionally handle successful response
+    } else {
+      throw new Error('Failed to insert company');
+    }
+  } catch (error) {
+    console.error(error);
+    alert('Failed to insert company');
+    // Handle error
+  }
+});
+
+    
+
+        // Function to validate input types
+        function validateInputTypes(companyId, numEmployees) {
+        // Validate input types (e.g., CompanyID should be a number, NumEmployees should be a valid number)
+        return !isNaN(companyId) && !isNaN(numEmployees);
+        }
+
+
+    document.getElementById('getDataButton').addEventListener('click', fetchData);
+
+    async function fetchData() {
+      try {
+        const response = await fetch('http://localhost:3000/companies'); // Fetch data from the /companies endpoint
+        const data = await response.json(); // Parse JSON response
+
+        const companyData = document.getElementById('companyData');
+        companyData.innerHTML = ''; // Clear previous data
+
+        // Check if data and data.companyData exist and are arrays
+        if (Array.isArray(data.companyData) && data.companyData.length > 0) {
+          data.companyData.forEach(company => {
+            const row = document.createElement('tr');
+            company.forEach(value => {
+              const cell = document.createElement('td');
+              cell.textContent = value;
+              row.appendChild(cell);
+            });
+            companyData.appendChild(row);
+          });
+        } else {
+          // If data or data.companyData is empty or not an array
+          console.log('No company data available.');
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    
+  </script>
+</body>
+</html>

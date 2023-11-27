@@ -1,0 +1,1 @@
+(description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1521)(host=adb.ca-toronto-1.oraclecloud.com))(connect_data=(service_name=gd93372dce41e3b_mytestdb_high.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
