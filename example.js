@@ -71,7 +71,7 @@ async function createTable(tableName, columns) {
 
 
 // Route handling POST request to create table
-app.post('/createTable', async (req, res) => {
+app.post('/createTable', (req, res) => {
   const { tableName, columns } = req.body;
   // Check if tableName and columns exist in req.body
   if (!tableName || !columns) {
